@@ -5,7 +5,12 @@ const keyCodeSpace = 32;
 const gameWidth = 800;
 const gameHeight = 600;
 
+const playerWidth = 20;
+
 const gameState = {
+  leftPressed: false,
+  rightPressed: false,
+  spacePressed: false,
   playerX: 0,
   playerY: 0
 };
@@ -26,30 +31,38 @@ const createPlayer = (container)=>{
   setPosition(player, gameState.playerX, gameState.playerY);
 }
 
+const updatePlayer = ()=>{
+  if(leftPressed === true) gameState.playerX -=5;
+  if(rightPressed === true) gameState.playerX +=5;
+}
+
 const init = ()=>{
   const container = document.querySelector('.game');
   createPlayer(container);
 }
 
-const update = ()=>{
+const update = (e)=>{
   updatePlayer();
   window.requestAnimationFrame(update);
 }
 
-const onKeyDown = (e)=> {
-  
-  function movePlayerPosition(posX, posY){
-    const player = document.querySelector('.player');
-    setPosition(player, posX, posY)
-  }
-
+const onKeyDown = (e)=> { 
   if(e.keyCode === keyCodeLeft){
-    gameState.playerX -=5;
-    movePlayerPosition(gameState.playerX, gameState.playerY);
-    
+    gameState.leftPressed = true; 
   }else if(e.keyCode === keyCodeRight){
-    gameState.playerX += 5;
-    movePlayerPosition(gameState.playerX, gameState.playerY);
+    gameState.rightPressed = true;
+  }else if(e.keyCode === keyCodeSpace){
+    gameState.spacePressed = true;
+  }
+}
+
+const onKeyUp = (e)=> { 
+  if(e.keyCode === keyCodeLeft){
+    gameState.leftPressed = false; 
+  }else if(e.keyCode === keyCodeRight){
+    gameState.rightPressed = false;
+  }else if(e.keyCode === keyCodeSpace){
+    gameState.spacePressed = false;
   }
 }
 
