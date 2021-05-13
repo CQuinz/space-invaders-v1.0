@@ -31,18 +31,29 @@ const init = ()=>{
   createPlayer(container);
 }
 
+const update = ()=>{
+  updatePlayer();
+  window.requestAnimationFrame(update);
+}
 
 const onKeyDown = (e)=> {
+  
+  function movePlayerPosition(posX, posY){
+    const player = document.querySelector('.player');
+    setPosition(player, posX, posY)
+  }
+
   if(e.keyCode === keyCodeLeft){
     gameState.playerX -=5;
-    const player = document.querySelector('.player');
-    setPosition(player, gameState.playerX, gameState.playerY)
+    movePlayerPosition(gameState.playerX, gameState.playerY);
+    
   }else if(e.keyCode === keyCodeRight){
     gameState.playerX += 5;
-    const player = document.querySelector('.player');
-    setPosition(player, gameState.playerX, gameState.playerY)
+    movePlayerPosition(gameState.playerX, gameState.playerY);
   }
 }
 
 init();
 window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup', onKeyUp);
+window.requestAnimationFrame(update);
