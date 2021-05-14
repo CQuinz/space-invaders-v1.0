@@ -6,8 +6,10 @@ const gameWidth = 800;
 const gameHeight = 600;
 
 const playerWidth = 20;
+const playerMaxSpeed = 600.0;
 
 const gameState = {
+  lastTime: Date.now(),
   leftPressed: false,
   rightPressed: false,
   spacePressed: false,
@@ -43,9 +45,9 @@ function clamp(v, min, max){
 
 
 
-const updatePlayer = ()=>{
-  if(gameState.leftPressed === true) gameState.playerX -=5;
-  if(gameState.rightPressed === true) gameState.playerX +=5;
+const updatePlayer = (deltaTime)=>{
+  if(gameState.leftPressed === true) gameState.playerX -= deltaTime * playerMaxSpeed;
+  if(gameState.rightPressed === true) gameState.playerX += deltaTime * playerMaxSpeed;
 
   gameState.playerX = clamp(
     gameState.playerX,
@@ -63,7 +65,12 @@ const init = ()=>{
 }
 
 const update = (e)=>{
-  updatePlayer();
+  const currentTime = Date.now();
+  const deltaTime = (currentTime - gameState.lastTime) /1000.0;
+
+  updatePlayer(deltaTime);
+
+  gameState.lastTime = currentTime;
   window.requestAnimationFrame(update);
 }
 
