@@ -31,9 +31,30 @@ const createPlayer = (container)=>{
   setPosition(player, gameState.playerX, gameState.playerY);
 }
 
+function clamp(v, min, max){
+  if(v < min){
+    return min;
+  }else if(v > max){
+    return max;
+  }else{
+    return v;
+  }
+}
+
+
+
 const updatePlayer = ()=>{
-  if(leftPressed === true) gameState.playerX -=5;
-  if(rightPressed === true) gameState.playerX +=5;
+  if(gameState.leftPressed === true) gameState.playerX -=5;
+  if(gameState.rightPressed === true) gameState.playerX +=5;
+
+  gameState.playerX = clamp(
+    gameState.playerX,
+    playerWidth,
+    gameWidth - playerWidth
+  );
+
+  const player = document.querySelector('.player');
+  setPosition(player, gameState.playerX, gameState.playerY);
 }
 
 const init = ()=>{
