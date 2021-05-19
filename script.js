@@ -7,6 +7,8 @@ const gameHeight = 600;
 
 const playerWidth = 20;
 const playerMaxSpeed = 600.0;
+const laserMaxSpeed = 300;
+const laserCoolDown = 0.5;
 
 const gameState = {
   lastTime: Date.now(),
@@ -14,7 +16,8 @@ const gameState = {
   rightPressed: false,
   spacePressed: false,
   playerX: 0,
-  playerY: 0
+  playerY: 0,
+  lasers: []
 };
 
 const setPosition = (element, xPos, yPos)=>{
@@ -57,6 +60,17 @@ const updatePlayer = (deltaTime)=>{
 
   const player = document.querySelector('.player');
   setPosition(player, gameState.playerX, gameState.playerY);
+}
+
+const createLaser = (container, xPos, yPos)=>{
+  const element = document.createElement('img');
+  element.src = 'images/laserBlue1.png';
+  element.className = 'laser';
+  container.appendChild(element);
+
+  const laser = {xPos, yPos, element};
+  gameState.lasers.push(laser);
+  
 }
 
 const init = ()=>{
