@@ -17,6 +17,7 @@ const gameState = {
   spacePressed: false,
   playerX: 0,
   playerY: 0,
+  playerCoolDown: 0,
   lasers: []
 };
 
@@ -49,8 +50,8 @@ const createPlayer = (container)=>{
 
 
 const updatePlayer = (deltaTime, container)=>{
-  if(gameState.leftPressed === true) gameState.playerX -= deltaTime * playerMaxSpeed;
-  if(gameState.rightPressed === true) gameState.playerX += deltaTime * playerMaxSpeed;
+  if(gameState.leftPressed) gameState.playerX -= deltaTime * playerMaxSpeed;
+  if(gameState.rightPressed) gameState.playerX += deltaTime * playerMaxSpeed;
 
   gameState.playerX = clamp(
     gameState.playerX,
@@ -72,7 +73,7 @@ const updatePlayer = (deltaTime, container)=>{
 
 const createLaser = (container, xPos, yPos)=>{
   const element = document.createElement('img');
-  element.src = 'images/laserBlue1.png';
+  element.src = 'images/laserBlue01.png';
   element.className = 'laser';
   container.appendChild(element);
 
