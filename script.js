@@ -24,6 +24,16 @@ const setPosition = (element, xPos, yPos)=>{
   element.style.transform = `translate(${xPos}px, ${yPos}px)`;
 }
 
+function clamp(v, min, max){
+  if(v < min){
+    return min;
+  }else if(v > max){
+    return max;
+  }else{
+    return v;
+  }
+}
+
 const createPlayer = (container)=>{
   gameState.playerX = gameWidth/2;
   gameState.playerY = gameHeight - 50;
@@ -36,19 +46,9 @@ const createPlayer = (container)=>{
   setPosition(player, gameState.playerX, gameState.playerY);
 }
 
-function clamp(v, min, max){
-  if(v < min){
-    return min;
-  }else if(v > max){
-    return max;
-  }else{
-    return v;
-  }
-}
 
 
-
-const updatePlayer = (deltaTime)=>{
+const updatePlayer = (deltaTime, container)=>{
   if(gameState.leftPressed === true) gameState.playerX -= deltaTime * playerMaxSpeed;
   if(gameState.rightPressed === true) gameState.playerX += deltaTime * playerMaxSpeed;
 
@@ -57,6 +57,14 @@ const updatePlayer = (deltaTime)=>{
     playerWidth,
     gameWidth - playerWidth
   );
+
+  if(gameState.spacePressed && gameState.playerCoolDown <= 0){
+    createLaser(container, gameState.playerX, gameState.playerY);
+    gameState.playerCoolDown = laserCoolDown;
+  }
+  if(gameState.playerCoolDown > 0){
+    gameState.playerCoolDown -= deltaTime;
+  }
 
   const player = document.querySelector('.player');
   setPosition(player, gameState.playerX, gameState.playerY);
@@ -70,7 +78,18 @@ const createLaser = (container, xPos, yPos)=>{
 
   const laser = {xPos, yPos, element};
   gameState.lasers.push(laser);
-  
+  const audio = new Audio('sounds/sfx-laser1.ogg');
+  audio.play();
+  setPosition(element, xPos, yPos);
+}
+
+const updateLasers = (deltaTime, container)=>{
+  const lasers = gameState.lasers;
+  for(let i = 0; i < gameState.lasers.length; i++){
+    const laser = lasers[i];
+    laser.yPos -= deltaTime * laserMaxSpeed;
+    setPosition(laser.element, laser.xPos, laser.yPos);
+  }
 }
 
 const init = ()=>{
@@ -82,7 +101,10 @@ const update = (e)=>{
   const currentTime = Date.now();
   const deltaTime = (currentTime - gameState.lastTime) /1000.0;
 
-  updatePlayer(deltaTime);
+  const container = document.querySelector('.game');
+
+  updatePlayer(deltaTime, container);
+  updateLasers(deltaTime, container);
 
   gameState.lastTime = currentTime;
   window.requestAnimationFrame(update);
