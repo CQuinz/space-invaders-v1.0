@@ -89,8 +89,18 @@ const updateLasers = (deltaTime, container)=>{
   for(let i = 0; i < gameState.lasers.length; i++){
     const laser = lasers[i];
     laser.yPos -= deltaTime * laserMaxSpeed;
+
+    if(laser.yPos < 0){
+      distroyLaser(container, laser);
+    }
     setPosition(laser.element, laser.xPos, laser.yPos);
   }
+  gameState.lasers = gameState.lasers.filter(e => !e.isDead);
+}
+
+function distroyLaser(container, laser){
+  container.removeChild(laser.element);
+  laser.isDead = true;
 }
 
 const init = ()=>{
