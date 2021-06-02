@@ -6,9 +6,9 @@ const gameWidth = 800;
 const gameHeight = 600;
 
 const playerWidth = 20;
-const playerMaxSpeed = 600.0;
+const playerMaxSpeed = 500.0;
 const laserMaxSpeed = 300;
-const laserCoolDown = 0.5;
+const laserCoolDown = 0.3;
 
 const gameState = {
   lastTime: Date.now(),
