@@ -46,6 +46,10 @@ footer {
   position: relative;
 }
 
+.invader-container{
+  width: 550px;
+}
+
 @keyframes scroll-background {
   from {
     background-position-y: 0px;
