@@ -14,8 +14,9 @@ const enemiesPerRow = 8;
 const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
+const invaderContainermovementAmount = 30;
 
-let isMoveInvadersLeft = false;
+
 
 const gameState = {
   lastTime: Date.now(),
@@ -25,7 +26,11 @@ const gameState = {
   playerX: 0,
   playerY: 0,
   playerCoolDown: 0,
+  isMoveInvadersLeft: false,
+  isMoveInvadersDown: false,
   invaderMovementDelay: 0,
+  invaderContainerTranslateXAmount: 0,
+  invaderContainerTranslateYAmount: 0,
   lasers: [],
   enemies: []
 };
@@ -52,11 +57,8 @@ const createPlayer = (container)=>{
   player.src= 'images/playerShip1_orange.png';
   player.className = 'player';
   container.appendChild(player);
-
   setPosition(player, gameState.playerX, gameState.playerY);
 }
-
-
 
 const updatePlayer = (deltaTime, container)=>{
   if(gameState.leftPressed) gameState.playerX -= deltaTime * playerMaxSpeed;
@@ -75,7 +77,6 @@ const updatePlayer = (deltaTime, container)=>{
   if(gameState.playerCoolDown > 0){
     gameState.playerCoolDown -= deltaTime;
   }
-
   const player = document.querySelector('.player');
   setPosition(player, gameState.playerX, gameState.playerY);
 }
@@ -128,26 +129,35 @@ function createEnemy(invaderContainer, xPos, yPos){
 }
 
 function updateEnemyPosition(deltaTime, invaderContainer){
-  // const dx = Math.sin(gameState.lastTime / 1000) * 100;
-  
+
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
+  let xPos = gameState.invaderContainerTranslateXAmount;
+  let yPos = gameState.invaderContainerTranslateYAmount;
 
-  if(invaderContainerPosition.right >= 1000) isMoveInvadersLeft = true;
-  if(invaderContainerPosition.right <= 500) isMoveInvadersLeft = false;
-  
-  if(gameState.invaderMovementDelay <=0 && isMoveInvadersLeft === false){
-    let xPos = invaderContainerPosition.right;
-    gameState.invaderMovementDelay = 1;
-    setPosition(invaderContainer, xPos, 0);
-
-  } else if(gameState.invaderMovementDelay <=0 && isMoveInvadersLeft === true){
-    let xPos = invaderContainerPosition.right;
-    gameState.invaderMovementDelay = 1;
-    setPosition(invaderContainer, xPos, 0);
+  if(invaderContainerPosition.right >= 970){
+    gameState.isMoveInvadersLeft = true;
+    gameState.isMoveInvadersDown = true;
   }
-  if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
+  if(gameState.isMoveInvadersDown === true){
+    gameState.invaderContainerTranslateYAmount += 40;
+    yPos = gameState.invaderContainerTranslateYAmount;
+    gameState.isMoveInvadersDown = false;
+  }
+  if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
+
+  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersLeft === false){
+    gameState.invaderMovementDelay = 0.5;
+    setPosition(invaderContainer, xPos, yPos);
+    gameState.invaderContainerTranslateXAmount += invaderContainermovementAmount;
+  } 
+
+  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersLeft === true){
+    gameState.invaderMovementDelay = 0.5;
+    setPosition(invaderContainer, xPos, yPos);
+    gameState.invaderContainerTranslateXAmount -= invaderContainermovementAmount;
+  }
   
-  // console.log(isMoveInvadersLeft);
+  if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
 }
 
 const init = ()=>{
@@ -178,7 +188,7 @@ const update = (e)=>{
 
   updatePlayer(deltaTime, container);
   updateLasers(deltaTime, container);
-  // updateEnemyPosition(deltaTime, invaderContainer);
+  updateEnemyPosition(deltaTime, invaderContainer);
 
   gameState.lastTime = currentTime;
   window.requestAnimationFrame(update);
