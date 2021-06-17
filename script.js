@@ -15,6 +15,8 @@ const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
 
+let isMoveInvadersLeft = false;
+
 const gameState = {
   lastTime: Date.now(),
   leftPressed: false,
@@ -23,6 +25,7 @@ const gameState = {
   playerX: 0,
   playerY: 0,
   playerCoolDown: 0,
+  invaderMovementDelay: 0,
   lasers: [],
   enemies: []
 };
@@ -124,30 +127,27 @@ function createEnemy(invaderContainer, xPos, yPos){
   setPosition(element, xPos, yPos);
 }
 
-function updatEnemies(deltaTime, invaderContainer){
-  const dx = Math.sin(gameState.lastTime / 1000) * 100;
-  // const dy = Math.sin(gameState.lastTime / 1000) * 10;
-  
-
-  // const enemies = gameState.enemies;
+function updateEnemyPosition(deltaTime, invaderContainer){
+  // const dx = Math.sin(gameState.lastTime / 1000) * 100;
   
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
-  // console.log(invaderContainerPosition.left);
 
+  if(invaderContainerPosition.right >= 1000) isMoveInvadersLeft = true;
+  if(invaderContainerPosition.right <= 500) isMoveInvadersLeft = false;
   
-  // for(let i =0; i < enemies.length; i++){
-  //   const enemy = enemies[i];
-  //   const xPos = enemy.xPos + dx;
-  //   let yPos = enemy.yPos; 
-  //   setPosition(enemy.element, xPos, yPos);
-    
-  // }
-  let xPos = (invaderContainerPosition.left - 150) +1 ;
+  if(gameState.invaderMovementDelay <=0 && isMoveInvadersLeft === false){
+    let xPos = invaderContainerPosition.right;
+    gameState.invaderMovementDelay = 1;
+    setPosition(invaderContainer, xPos, 0);
 
-  setPosition(invaderContainer, xPos, 0);
-  // xPos++;
-  // console.log(xPos);
-
+  } else if(gameState.invaderMovementDelay <=0 && isMoveInvadersLeft === true){
+    let xPos = invaderContainerPosition.right;
+    gameState.invaderMovementDelay = 1;
+    setPosition(invaderContainer, xPos, 0);
+  }
+  if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
+  
+  // console.log(isMoveInvadersLeft);
 }
 
 const init = ()=>{
@@ -178,7 +178,7 @@ const update = (e)=>{
 
   updatePlayer(deltaTime, container);
   updateLasers(deltaTime, container);
-  updatEnemies(deltaTime, invaderContainer);
+  // updateEnemyPosition(deltaTime, invaderContainer);
 
   gameState.lastTime = currentTime;
   window.requestAnimationFrame(update);
@@ -208,3 +208,20 @@ init();
 window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
 window.requestAnimationFrame(update);
+
+// Function for changing the horzontal position to be tweaked and added.
+
+// function moveInvaders(direction){
+//   const getCurrentPosition = invaderContainer.getBoundingClientRect();
+//   let movementDirection;
+//   const positionLeft = getCurrentPosition.left;
+
+//   if(direction === left) left -=10;
+//   if(direction === right) right += 10;
+//   movementDirection = direction;
+  
+//   setPosition(invaderContainer, movementDirection, 0);
+
+// console.log('positionLeft: ', positionLeft);
+// console.log('movementDirection: ', movementDirection);
+// }
