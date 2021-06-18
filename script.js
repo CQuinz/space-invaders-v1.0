@@ -128,35 +128,37 @@ function createEnemy(invaderContainer, xPos, yPos){
   setPosition(element, xPos, yPos);
 }
 
+const checkICCurrentPosition = (invaderContainerPosition)=>{
+  if(invaderContainerPosition.right >= 970) gameState.isMoveInvadersLeft = true;
+  if(gameState.isMoveInvadersLeft === true && invaderContainerPosition.right >= (gameWidth + 200)) gameState.isMoveInvadersDown = true;
+  if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
+}
+
+const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
+  gameState.invaderMovementDelay = 0.5;
+  setPosition(invaderContainer, xPos, yPos);
+}
+
 function updateEnemyPosition(deltaTime, invaderContainer){
 
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
   let xPos = gameState.invaderContainerTranslateXAmount;
   let yPos = gameState.invaderContainerTranslateYAmount;
 
-  if(invaderContainerPosition.right >= 970){
-    gameState.isMoveInvadersLeft = true;
-    gameState.isMoveInvadersDown = true;
-  }
-  if(gameState.isMoveInvadersDown === true){
-    gameState.invaderContainerTranslateYAmount += 40;
+  checkICCurrentPosition(invaderContainerPosition);
+
+  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersDown === true){
+    gameState.invaderContainerTranslateYAmount += 20;
     yPos = gameState.invaderContainerTranslateYAmount;
     gameState.isMoveInvadersDown = false;
   }
-  if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
-
-  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersLeft === false){
-    gameState.invaderMovementDelay = 0.5;
-    setPosition(invaderContainer, xPos, yPos);
-    gameState.invaderContainerTranslateXAmount += invaderContainermovementAmount;
+  
+  if(gameState.invaderMovementDelay <=0){
+    moveInvaderContainerPosition(invaderContainer, xPos, yPos);
+    if(!gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount += invaderContainermovementAmount;
+    if(gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount -= invaderContainermovementAmount; 
   } 
 
-  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersLeft === true){
-    gameState.invaderMovementDelay = 0.5;
-    setPosition(invaderContainer, xPos, yPos);
-    gameState.invaderContainerTranslateXAmount -= invaderContainermovementAmount;
-  }
-  
   if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
 }
 
