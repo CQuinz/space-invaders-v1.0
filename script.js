@@ -36,6 +36,15 @@ const gameState = {
   enemies: []
 };
 
+const checkRectanglesIntersect = (rectangle1, rectangle2)=>{
+  return !(
+    rectangle2.left > rectangle1.right ||
+    rectangle2.right < rectangle1.left ||
+    rectangle2.top > rectangle1.bottom ||
+    rectangle2.bottom < rectangle1.top
+  );
+}
+
 const setPosition = (element, xPos, yPos)=>{
   element.style.transform = `translate(${xPos}px, ${yPos}px)`;
 }
@@ -105,6 +114,20 @@ const updateLasers = (deltaTime, container)=>{
       distroyLaser(container, laser);
     }
     setPosition(laser.element, laser.xPos, laser.yPos);
+
+    const rectangle1 = laser.element.getBoundingClientRect();
+    const enemies = gameState.enemies;
+    for(let j = 0; j < enemies.length; j++){
+      const enemy = enemies[j];
+      if(enemy.isDead) continue;
+      const rectangle2 = enemy.element.getBoundingClientRect();
+      if(checkRectanglesIntersect(rectangle1, rectangle2)){
+        // Enemy was hit
+        distroyEnemy(enemy);
+        distroyLaser(container, laser);
+        break;
+      }
+    }
   }
   gameState.lasers = gameState.lasers.filter(e => !e.isDead);
 }
@@ -133,7 +156,7 @@ const checkICCurrentPosition = (invaderContainerPosition)=>{
   if(invaderContainerPosition.right >= 970) gameState.isMoveInvadersLeft = true;
   if(gameState.isMoveInvadersLeft === true && invaderContainerPosition.right >= (gameWidth + 200)) gameState.isMoveInvadersDown = true;
   if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
-  if(invaderContainerPosition.bottom >= (gameHeight/2)) return gameState.isGameOver = true;
+  if(invaderContainerPosition.bottom >= (gameHeight/2) + 40) return gameState.isGameOver = true;
 }
 
 const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
@@ -162,6 +185,13 @@ function updateEnemyPosition(deltaTime, invaderContainer){
   } 
 
   if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
+
+  updateEnemyNumber();
+}
+
+function updateEnemyNumber(){
+  gameState.enemies = gameState.enemies.filter(e => !e.isDead);
+
 }
 
 const init = ()=>{
@@ -181,6 +211,12 @@ const init = ()=>{
       createEnemy(invaderContainer, xPos, yPos);
     }
   }
+}
+
+const distroyEnemy = (enemy)=>{
+  const invaderContainer = document.querySelector('.invader-container');
+  invaderContainer.removeChild(enemy.element);
+  enemy.isDead = true;
 }
 
 const update = (e)=>{
