@@ -19,6 +19,7 @@ const invaderContainermovementAmount = 30;
 
 
 const gameState = {
+  isGameOver: false,
   lastTime: Date.now(),
   leftPressed: false,
   rightPressed: false,
@@ -132,6 +133,7 @@ const checkICCurrentPosition = (invaderContainerPosition)=>{
   if(invaderContainerPosition.right >= 970) gameState.isMoveInvadersLeft = true;
   if(gameState.isMoveInvadersLeft === true && invaderContainerPosition.right >= (gameWidth + 200)) gameState.isMoveInvadersDown = true;
   if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
+  if(invaderContainerPosition.bottom >= (gameHeight/2)) return gameState.isGameOver = true;
 }
 
 const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
@@ -182,18 +184,20 @@ const init = ()=>{
 }
 
 const update = (e)=>{
-  const currentTime = Date.now();
-  const deltaTime = (currentTime - gameState.lastTime) /1000.0;
+  if(!gameState.isGameOver){
+    const currentTime = Date.now();
+    const deltaTime = (currentTime - gameState.lastTime) /1000.0;
 
-  const container = document.querySelector('.game');
-  const invaderContainer = document.querySelector('.invader-container');
+    const container = document.querySelector('.game');
+    const invaderContainer = document.querySelector('.invader-container');
 
-  updatePlayer(deltaTime, container);
-  updateLasers(deltaTime, container);
-  updateEnemyPosition(deltaTime, invaderContainer);
+    updatePlayer(deltaTime, container);
+    updateLasers(deltaTime, container);
+    updateEnemyPosition(deltaTime, invaderContainer);
 
-  gameState.lastTime = currentTime;
-  window.requestAnimationFrame(update);
+    gameState.lastTime = currentTime;
+    window.requestAnimationFrame(update);
+  }
 }
 
 const onKeyDown = (e)=> { 
@@ -221,19 +225,3 @@ window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
 window.requestAnimationFrame(update);
 
-// Function for changing the horzontal position to be tweaked and added.
-
-// function moveInvaders(direction){
-//   const getCurrentPosition = invaderContainer.getBoundingClientRect();
-//   let movementDirection;
-//   const positionLeft = getCurrentPosition.left;
-
-//   if(direction === left) left -=10;
-//   if(direction === right) right += 10;
-//   movementDirection = direction;
-  
-//   setPosition(invaderContainer, movementDirection, 0);
-
-// console.log('positionLeft: ', positionLeft);
-// console.log('movementDirection: ', movementDirection);
-// }
