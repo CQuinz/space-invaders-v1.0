@@ -14,6 +14,7 @@ const enemiesPerRow = 8;
 const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
+const enemyCooldown = 2;
 const invaderContainermovementAmount = 30;
 
 
@@ -33,7 +34,8 @@ const gameState = {
   invaderContainerTranslateXAmount: 0,
   invaderContainerTranslateYAmount: 0,
   lasers: [],
-  enemies: []
+  enemies: [],
+  enemyLasers: []
 };
 
 const checkRectanglesIntersect = (rectangle1, rectangle2)=>{
@@ -152,11 +154,27 @@ function createEnemy(invaderContainer, xPos, yPos){
   setPosition(element, xPos, yPos);
 }
 
-const checkICCurrentPosition = (invaderContainerPosition)=>{
+const checkInvadersCurrentPosition = (invaderContainerPosition)=>{
   if(invaderContainerPosition.right >= 970) gameState.isMoveInvadersLeft = true;
   if(gameState.isMoveInvadersLeft === true && invaderContainerPosition.right >= (gameWidth + 200)) gameState.isMoveInvadersDown = true;
   if(invaderContainerPosition.right <= 700) gameState.isMoveInvadersLeft = false;
   if(invaderContainerPosition.bottom >= (gameHeight/2) + 40) return gameState.isGameOver = true;
+}
+
+const checkMoveInvadersDown = (yPos)=>{
+  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersDown === true){
+    gameState.invaderContainerTranslateYAmount += 20;
+    yPos = gameState.invaderContainerTranslateYAmount;
+    gameState.isMoveInvadersDown = false;
+  }
+}
+
+const checkInvaderMoveDirection = (invaderContainer, xPos, yPos)=>{
+  if(gameState.invaderMovementDelay <=0){
+    moveInvaderContainerPosition(invaderContainer, xPos, yPos);
+    if(!gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount += invaderContainermovementAmount;
+    if(gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount -= invaderContainermovementAmount; 
+  } 
 }
 
 const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
@@ -164,25 +182,16 @@ const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
   setPosition(invaderContainer, xPos, yPos);
 }
 
-function updateEnemyPosition(deltaTime, invaderContainer){
+
+function updateEnemies(deltaTime, invaderContainer){
 
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
   let xPos = gameState.invaderContainerTranslateXAmount;
   let yPos = gameState.invaderContainerTranslateYAmount;
 
-  checkICCurrentPosition(invaderContainerPosition);
-
-  if(gameState.invaderMovementDelay <=0 && gameState.isMoveInvadersDown === true){
-    gameState.invaderContainerTranslateYAmount += 20;
-    yPos = gameState.invaderContainerTranslateYAmount;
-    gameState.isMoveInvadersDown = false;
-  }
-  
-  if(gameState.invaderMovementDelay <=0){
-    moveInvaderContainerPosition(invaderContainer, xPos, yPos);
-    if(!gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount += invaderContainermovementAmount;
-    if(gameState.isMoveInvadersLeft) gameState.invaderContainerTranslateXAmount -= invaderContainermovementAmount; 
-  } 
+  checkInvadersCurrentPosition(invaderContainerPosition);
+  checkMoveInvadersDown(yPos);
+  checkInvaderMoveDirection(invaderContainer, xPos, yPos);
 
   if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
 
@@ -229,7 +238,7 @@ const update = (e)=>{
 
     updatePlayer(deltaTime, container);
     updateLasers(deltaTime, container);
-    updateEnemyPosition(deltaTime, invaderContainer);
+    updateEnemies(deltaTime, invaderContainer);
 
     gameState.lastTime = currentTime;
     window.requestAnimationFrame(update);
