@@ -8,13 +8,13 @@ const gameHeight = 600;
 const playerWidth = 20;
 const playerMaxSpeed = 500.0;
 const laserMaxSpeed = 300;
-const laserCoolDown = 0.3;
+const playerLaserCooldownAmount = 0.3;
 
 const enemiesPerRow = 8;
 const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
-const enemyCooldown = 2;
+const enemyLaserCooldownAmount = 2;
 const invaderContainermovementAmount = 30;
 
 
@@ -61,6 +61,16 @@ function clamp(v, min, max){
   }
 }
 
+const checkPlayerCanShoot = (deltaTime, container)=>{
+  if(gameState.spacePressed && gameState.playerCoolDown <= 0){
+    createLaser(container, gameState.playerX, gameState.playerY);
+    gameState.playerCoolDown = playerLaserCooldownAmount;
+  }
+  if(gameState.playerCoolDown > 0){
+    gameState.playerCoolDown -= deltaTime;
+  }
+}
+
 const createPlayer = (container)=>{
   gameState.playerX = gameWidth/2;
   gameState.playerY = gameHeight - 50;
@@ -82,15 +92,25 @@ const updatePlayer = (deltaTime, container)=>{
     gameWidth - playerWidth
   );
 
-  if(gameState.spacePressed && gameState.playerCoolDown <= 0){
-    createLaser(container, gameState.playerX, gameState.playerY);
-    gameState.playerCoolDown = laserCoolDown;
-  }
-  if(gameState.playerCoolDown > 0){
-    gameState.playerCoolDown -= deltaTime;
-  }
+  checkPlayerCanShoot(deltaTime, container);
   const player = document.querySelector('.player');
   setPosition(player, gameState.playerX, gameState.playerY);
+}
+
+const checkLaserEnemyIntersect = (container, laser)=>{
+  const rectangle1 = laser.element.getBoundingClientRect();
+    const enemies = gameState.enemies;
+    for(let j = 0; j < enemies.length; j++){
+      const enemy = enemies[j];
+      if(enemy.isDead) continue;
+      const rectangle2 = enemy.element.getBoundingClientRect();
+      if(checkRectanglesIntersect(rectangle1, rectangle2)){
+        // Enemy was hit
+        distroyEnemy(enemy);
+        distroyLaser(container, laser);
+        break;
+      }
+    }
 }
 
 const createLaser = (container, xPos, yPos)=>{
@@ -106,30 +126,17 @@ const createLaser = (container, xPos, yPos)=>{
   setPosition(element, xPos, yPos);
 }
 
+
 const updateLasers = (deltaTime, container)=>{
   const lasers = gameState.lasers;
   for(let i = 0; i < gameState.lasers.length; i++){
     const laser = lasers[i];
     laser.yPos -= deltaTime * laserMaxSpeed;
-
     if(laser.yPos < 0){
       distroyLaser(container, laser);
     }
     setPosition(laser.element, laser.xPos, laser.yPos);
-
-    const rectangle1 = laser.element.getBoundingClientRect();
-    const enemies = gameState.enemies;
-    for(let j = 0; j < enemies.length; j++){
-      const enemy = enemies[j];
-      if(enemy.isDead) continue;
-      const rectangle2 = enemy.element.getBoundingClientRect();
-      if(checkRectanglesIntersect(rectangle1, rectangle2)){
-        // Enemy was hit
-        distroyEnemy(enemy);
-        distroyLaser(container, laser);
-        break;
-      }
-    }
+    checkLaserEnemyIntersect(container, laser);
   }
   gameState.lasers = gameState.lasers.filter(e => !e.isDead);
 }
@@ -140,7 +147,6 @@ function distroyLaser(container, laser){
 }
 
 function createEnemy(invaderContainer, xPos, yPos){
-  
   const element = document.createElement('img');
   element.src= 'images/enemyRed1.png';
   element.className = 'enemy';
@@ -148,7 +154,8 @@ function createEnemy(invaderContainer, xPos, yPos){
   const enemy ={
     xPos,
     yPos,
-    element
+    element,
+    laserCooldown: enemyLaserCooldownAmount
   };
   gameState.enemies.push(enemy);
   setPosition(element, xPos, yPos);
@@ -182,9 +189,26 @@ const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
   setPosition(invaderContainer, xPos, yPos);
 }
 
+const createEnemyLaser = (enemy, xPos, yPos)=>{
+  const container = document.querySelector('.container');
+  const laser = document.createElement('img');
+  laser.src = 'images/laserRed01.png';
+  container.appendChild(laser);
+  setPosition(laser, xPos, yPos);
+  enemy.laserCooldown = enemyLaserCooldownAmount;
+  laser.push(gameState.enemyLasers)
+}
+
+const checkCreateEnemyLaser = (xPos, yPos)=>{
+  const enemies = gameState.enemies;
+  enemies.forEach(enemy => {
+    if(enemy.laserCooldown <= 0) createEnemyLaser(enemy, xPos, yPos);
+  });
+}
+
+const updateEnemyNumber = () => gameState.enemies = gameState.enemies.filter(e => !e.isDead);
 
 function updateEnemies(deltaTime, invaderContainer){
-
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
   let xPos = gameState.invaderContainerTranslateXAmount;
   let yPos = gameState.invaderContainerTranslateYAmount;
@@ -192,16 +216,14 @@ function updateEnemies(deltaTime, invaderContainer){
   checkInvadersCurrentPosition(invaderContainerPosition);
   checkMoveInvadersDown(yPos);
   checkInvaderMoveDirection(invaderContainer, xPos, yPos);
-
-  if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
-
   updateEnemyNumber();
+  checkCreateEnemyLaser(deltaTime, xPos, yPos);
+  if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
+  
 }
 
-function updateEnemyNumber(){
-  gameState.enemies = gameState.enemies.filter(e => !e.isDead);
 
-}
+
 
 const init = ()=>{
   // Create a container for the invaders
