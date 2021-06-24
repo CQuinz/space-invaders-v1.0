@@ -15,6 +15,7 @@ const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
 const enemyLaserCooldownAmount = 2;
+const enemyLaserMaxSpeed = 600;
 const invaderContainermovementAmount = 30;
 
 
@@ -155,7 +156,7 @@ function createEnemy(invaderContainer, xPos, yPos){
     xPos,
     yPos,
     element,
-    laserCooldown: enemyLaserCooldownAmount
+    laserCooldown: 0
   };
   gameState.enemies.push(enemy);
   setPosition(element, xPos, yPos);
@@ -190,19 +191,35 @@ const moveInvaderContainerPosition = (invaderContainer, xPos, yPos)=>{
 }
 
 const createEnemyLaser = (enemy, xPos, yPos)=>{
-  const container = document.querySelector('.container');
-  const laser = document.createElement('img');
-  laser.src = 'images/laserRed01.png';
-  container.appendChild(laser);
-  setPosition(laser, xPos, yPos);
+  const container = document.querySelector('.game');
+  const element = document.createElement('img');
+  element.src = 'images/laserRed01.png';
+  element.className = 'laser';
+  laser ={
+    element,
+    xPos,
+    yPos
+  }
+  
+  container.appendChild(element);
+  setPosition(element, xPos, yPos);
   enemy.laserCooldown = enemyLaserCooldownAmount;
-  laser.push(gameState.enemyLasers)
+  gameState.enemyLasers.push(laser);
 }
 
-const checkCreateEnemyLaser = (xPos, yPos)=>{
+const updateEnemylaser = (deltaTime, container)=>{
+  const enemyLasers = gameState.enemyLasers;
+  
+}
+
+const checkCreateEnemyLaser = ()=>{
   const enemies = gameState.enemies;
-  enemies.forEach(enemy => {
-    if(enemy.laserCooldown <= 0) createEnemyLaser(enemy, xPos, yPos);
+  enemies.forEach((enemy) => {
+    if(enemy.laserCooldown <= 0){
+      const xPos = enemy.xPos;
+      const yPos = enemy.yPos;
+      createEnemyLaser(enemy, xPos, yPos);
+    }
   });
 }
 
