@@ -7,15 +7,15 @@ const gameHeight = 600;
 
 const playerWidth = 20;
 const playerMaxSpeed = 500.0;
-const laserMaxSpeed = 300;
+const playerLaserMaxSpeed = 300;
 const playerLaserCooldownAmount = 0.3;
 
 const enemiesPerRow = 8;
 const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
-const enemyLaserCooldownAmount = 2;
-const enemyLaserMaxSpeed = 600;
+const enemyLaserCooldownAmount = Math.floor(Math.random()*4);
+const enemyLaserMaxSpeed = 150;
 const invaderContainermovementAmount = 30;
 
 
@@ -132,7 +132,7 @@ const updateLasers = (deltaTime, container)=>{
   const lasers = gameState.lasers;
   for(let i = 0; i < gameState.lasers.length; i++){
     const laser = lasers[i];
-    laser.yPos -= deltaTime * laserMaxSpeed;
+    laser.yPos -= deltaTime * playerLaserMaxSpeed;
     if(laser.yPos < 0){
       distroyLaser(container, laser);
     }
@@ -156,7 +156,7 @@ function createEnemy(invaderContainer, xPos, yPos){
     xPos,
     yPos,
     element,
-    laserCooldown: 0
+    laserCooldown: enemyLaserCooldownAmount
   };
   gameState.enemies.push(enemy);
   setPosition(element, xPos, yPos);
@@ -209,23 +209,44 @@ const createEnemyLaser = (enemy, xPos, yPos)=>{
 
 const updateEnemylaser = (deltaTime, container)=>{
   const enemyLasers = gameState.enemyLasers;
-  
+  enemyLasers.forEach((enemyLaser) => {
+    let yPos = enemyLaser.yPos += deltaTime * enemyLaserMaxSpeed;
+    setPosition(enemyLaser.element, enemyLaser.xPos, yPos);
+
+    if(yPos > gameHeight) distroyEnemyLaser(enemyLaser, container);
+  }); 
+  gameState.enemyLasers = gameState.enemyLasers.filter(e => !e.isDead);
 }
 
-const checkCreateEnemyLaser = ()=>{
-  const enemies = gameState.enemies;
-  enemies.forEach((enemy) => {
+const distroyEnemyLaser = (enemyLaser, container)=>{
+  container.removeChild(enemyLaser.element);
+  enemyLaser.isDead = true;
+}
+
+const checkCreateEnemyLaser = (deltaTime, enemy)=>{
+  // const enemies = gameState.enemies;
+  // enemies.forEach((enemy) => {
+    enemy.laserCooldown -= deltaTime/5;
     if(enemy.laserCooldown <= 0){
       const xPos = enemy.xPos;
       const yPos = enemy.yPos;
       createEnemyLaser(enemy, xPos, yPos);
+      enemy.laserCooldown = enemyLaserCooldownAmount;
     }
-  });
+  // });
+}
+
+const distroyEnemy = (enemy)=>{
+  const invaderContainer = document.querySelector('.invader-container');
+  invaderContainer.removeChild(enemy.element);
+  enemy.isDead = true;
 }
 
 const updateEnemyNumber = () => gameState.enemies = gameState.enemies.filter(e => !e.isDead);
 
-function updateEnemies(deltaTime, invaderContainer){
+
+
+function updateEnemiesPosition(deltaTime, invaderContainer){
   let invaderContainerPosition = invaderContainer.getBoundingClientRect();
   let xPos = gameState.invaderContainerTranslateXAmount;
   let yPos = gameState.invaderContainerTranslateYAmount;
@@ -233,10 +254,25 @@ function updateEnemies(deltaTime, invaderContainer){
   checkInvadersCurrentPosition(invaderContainerPosition);
   checkMoveInvadersDown(yPos);
   checkInvaderMoveDirection(invaderContainer, xPos, yPos);
-  updateEnemyNumber();
-  checkCreateEnemyLaser(deltaTime, xPos, yPos);
+  // updateEnemyNumber();
+  // checkCreateEnemyLaser(deltaTime);
   if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
+}
+
+const updateCurrentEnemyPositionInfo = (enemy, index)=>{
+  const currentPosition = enemy.element.getBoundingClientRect();
+  gameState.enemies[index].xPos = (currentPosition.right -20);
+  gameState.enemies[index].yPos = (currentPosition.top + 20);
   
+}
+
+const updateEachEnemy = (deltaTime)=>{
+  const enemies = gameState.enemies;
+  enemies.forEach((enemy, index) => {
+    updateCurrentEnemyPositionInfo(enemy, index);
+    updateEnemyNumber(enemy);
+    checkCreateEnemyLaser(deltaTime, enemy);
+  });
 }
 
 
@@ -261,11 +297,6 @@ const init = ()=>{
   }
 }
 
-const distroyEnemy = (enemy)=>{
-  const invaderContainer = document.querySelector('.invader-container');
-  invaderContainer.removeChild(enemy.element);
-  enemy.isDead = true;
-}
 
 const update = (e)=>{
   if(!gameState.isGameOver){
@@ -277,7 +308,9 @@ const update = (e)=>{
 
     updatePlayer(deltaTime, container);
     updateLasers(deltaTime, container);
-    updateEnemies(deltaTime, invaderContainer);
+    updateEnemiesPosition(deltaTime, invaderContainer);
+    updateEachEnemy(deltaTime);
+    updateEnemylaser(deltaTime, container);
 
     gameState.lastTime = currentTime;
     window.requestAnimationFrame(update);
