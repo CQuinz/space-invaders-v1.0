@@ -14,12 +14,13 @@ const enemiesPerRow = 8;
 const enemyHorizontalPadding = 200;
 const enemeyVerticalPadding = 70;
 const enemyVerticalSpacing = 60;
-const enemyLaserCooldownAmount = Math.floor(Math.random()*4);
+ 
+// let enemyLaserCooldownAmount = 3;
 const enemyLaserMaxSpeed = 150;
 const invaderContainermovementAmount = 30;
 
-
-
+const generateRandomNum = ()=>Math.floor(Math.random()*10 +1);
+let enemyLaserCooldownAmount = generateRandomNum();
 const gameState = {
   isGameOver: false,
   lastTime: Date.now(),
@@ -214,6 +215,8 @@ const updateEnemylaser = (deltaTime, container)=>{
     setPosition(enemyLaser.element, enemyLaser.xPos, yPos);
 
     if(yPos > gameHeight) distroyEnemyLaser(enemyLaser, container);
+
+    checkLaserPlayerIntersect(container, enemyLaser);
   }); 
   gameState.enemyLasers = gameState.enemyLasers.filter(e => !e.isDead);
 }
@@ -223,17 +226,19 @@ const distroyEnemyLaser = (enemyLaser, container)=>{
   enemyLaser.isDead = true;
 }
 
-const checkCreateEnemyLaser = (deltaTime, enemy)=>{
-  // const enemies = gameState.enemies;
-  // enemies.forEach((enemy) => {
-    enemy.laserCooldown -= deltaTime/5;
+const checkCreateEnemyLaser = (deltaTime, enemy, index)=>{
+  
+    enemy.laserCooldown -= deltaTime/2;
     if(enemy.laserCooldown <= 0){
-      const xPos = enemy.xPos;
-      const yPos = enemy.yPos;
+      updateCurrentEnemyPositionInfo(enemy, index);
+      const xPos = gameState.enemies[index].xPos;
+      const yPos = gameState.enemies[index].yPos;
+      
       createEnemyLaser(enemy, xPos, yPos);
-      enemy.laserCooldown = enemyLaserCooldownAmount;
+      gameState.enemies[index].laserCooldown = generateRandomNum();
+  
     }
-  // });
+  
 }
 
 const distroyEnemy = (enemy)=>{
@@ -254,28 +259,47 @@ function updateEnemiesPosition(deltaTime, invaderContainer){
   checkInvadersCurrentPosition(invaderContainerPosition);
   checkMoveInvadersDown(yPos);
   checkInvaderMoveDirection(invaderContainer, xPos, yPos);
-  // updateEnemyNumber();
+  updateEnemyNumber();
   // checkCreateEnemyLaser(deltaTime);
   if(gameState.invaderMovementDelay > 0) gameState.invaderMovementDelay -= deltaTime;
 }
 
 const updateCurrentEnemyPositionInfo = (enemy, index)=>{
   const currentPosition = enemy.element.getBoundingClientRect();
-  gameState.enemies[index].xPos = (currentPosition.right -20);
-  gameState.enemies[index].yPos = (currentPosition.top + 20);
-  
+  gameState.enemies[index].xPos = (currentPosition.left - 250);
+  gameState.enemies[index].yPos = (currentPosition.top + 40);
 }
 
 const updateEachEnemy = (deltaTime)=>{
   const enemies = gameState.enemies;
   enemies.forEach((enemy, index) => {
-    updateCurrentEnemyPositionInfo(enemy, index);
-    updateEnemyNumber(enemy);
-    checkCreateEnemyLaser(deltaTime, enemy);
+    // updateCurrentEnemyPositionInfo(enemy, index);
+    // updateEnemyNumber(enemy);
+    checkCreateEnemyLaser(deltaTime, enemy, index);
   });
 }
 
 
+const checkLaserPlayerIntersect = (container, laser)=>{
+  if(!gameState.isGameOver){
+  const rectangle1 = laser.element.getBoundingClientRect();
+    const player = document.querySelector('.player');
+    const rectangle2 = player.getBoundingClientRect();
+      if(checkRectanglesIntersect(rectangle1, rectangle2)){
+        // Player was hit
+        const audio = new Audio('sounds/sfx-lose.ogg');
+        audio.play();
+        distroyPlayer(player, container);
+        distroyLaser(container, laser);
+      }
+  }
+}
+
+const distroyPlayer = (player, container)=>{
+  container.removeChild(player);
+
+  gameState.isGameOver = true;
+}
 
 
 const init = ()=>{
